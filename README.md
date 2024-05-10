@@ -35,7 +35,9 @@ After cloning the repository:
 - Open `build/window-vs2022/Falcor.sln` and the `Build Solution` in the `Release` configuration
 
 ## Run the demo
-- execute `RunAreaReSTIR.bat`
+- Before running the program, download the Bistro scene demo from [Google Drive](https://drive.google.com/file/d/1tRyFISyMozNMlHVF1q_iTNbpRvpEgyTp/view?usp=sharing).
+- Unzip and put everything under `data\Bistro\`.
+- Execute `RunAreaReSTIR.bat`.
 - The GUI contains self-explanatory settings to turn on/off different components of Area ReSTIR.  
 
 ## Test with more scenes
