@@ -1,0 +1,245 @@
+{
+    "version": 3,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 15,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "base",
+            "description": "Base configuration inherited by all presets.",
+            "hidden": true,
+            "cacheVariables": {},
+            "cmakeExecutable": "${sourceDir}/tools/.packman/cmake/bin/cmake",
+            "binaryDir": "${sourceDir}/build/${presetName}"
+        },
+        {
+            "name": "ci",
+            "description": "Enable additional options used for continous integration.",
+            "hidden": true,
+            "cacheVariables": {
+                "FALCOR_ENABLE_NRC": "ON",
+                "FALCOR_VALIDATE_HEADERS": "ON",
+                "FALCOR_PRECOMPILED_HEADERS": "OFF"
+            }
+        },
+        {
+            "name": "windows-base",
+            "description": "Base Windows configuration for specifying Windows SDK.",
+            "hidden": true,
+            "inherits": "base",
+            "cacheVariables": {
+                "CMAKE_SYSTEM_VERSION": "10.0.19041.0"
+            }
+        },
+        {
+            "name": "windows-vs2022-base",
+            "description": "Base Visual Studio 2022 configuration.",
+            "hidden": true,
+            "inherits": "windows-base",
+            "generator": "Visual Studio 17 2022",
+            "architecture": {
+                "value": "x64",
+                "strategy": "set"
+            },
+            "toolset": {
+                "value": "host=x86",
+                "strategy": "set"
+            }
+        },
+        {
+            "name": "windows-vs2022",
+            "displayName": "Windows VS2022",
+            "inherits": [
+                "windows-vs2022-base"
+            ]
+        },
+        {
+            "name": "windows-vs2022-ci",
+            "displayName": "Windows VS2022 (CI)",
+            "inherits": [
+                "windows-vs2022-base",
+                "ci"
+            ]
+        },
+        {
+            "name": "windows-ninja-msvc-base",
+            "description": "Base Ninja configuration using MSVC.",
+            "hidden": true,
+            "inherits": "windows-base",
+            "generator": "Ninja Multi-Config",
+            "environment": {
+                "VCToolsVersion": "14.30"
+            },
+            "architecture": {
+                "value": "x64",
+                "strategy": "external"
+            },
+            "toolset": {
+                "value": "host=x86,version=14.3",
+                "strategy": "external"
+            },
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": "${sourceDir}/tools/.packman/ninja/ninja.exe",
+                "CMAKE_CXX_COMPILER": "cl"
+            },
+            "vendor": {
+                "microsoft.com/VisualStudioSettings/CMake/1.0": {
+                    "hostOS": [
+                        "Windows"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "windows-ninja-msvc",
+            "displayName": "Windows Ninja/MSVC",
+            "inherits": [
+                "windows-ninja-msvc-base"
+            ]
+        },
+        {
+            "name": "windows-ninja-msvc-ci",
+            "displayName": "Windows Ninja/MSVC (CI)",
+            "inherits": [
+                "windows-ninja-msvc-base",
+                "ci"
+            ]
+        },
+        {
+            "name": "linux-base",
+            "description": "Base Linux configuration.",
+            "hidden": true,
+            "inherits": "base",
+            "generator": "Ninja Multi-Config",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": "${sourceDir}/tools/.packman/ninja/ninja"
+            }
+        },
+        {
+            "name": "linux-clang-base",
+            "description": "Base Linux/Clang configuration.",
+            "hidden": true,
+            "inherits": "linux-base",
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "clang",
+                "CMAKE_CXX_COMPILER": "clang++"
+            }
+        },
+        {
+            "name": "linux-clang",
+            "displayName": "Linux/Clang",
+            "inherits": [
+                "linux-clang-base"
+            ]
+        },
+        {
+            "name": "linux-clang-ci",
+            "displayName": "Linux/Clang (CI)",
+            "inherits": [
+                "linux-clang-base",
+                "ci"
+            ]
+        },
+        {
+            "name": "linux-gcc-base",
+            "description": "Base Linux/GCC configuration.",
+            "hidden": true,
+            "inherits": "linux-base",
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "gcc",
+                "CMAKE_CXX_COMPILER": "g++"
+            }
+        },
+        {
+            "name": "linux-gcc",
+            "displayName": "Linux/GCC",
+            "inherits": [
+                "linux-gcc-base"
+            ]
+        },
+        {
+            "name": "linux-gcc-ci",
+            "displayName": "Linux/GCC (CI)",
+            "inherits": [
+                "linux-gcc-base",
+                "ci"
+            ]
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "windows-ninja-msvc-release",
+            "displayName": "Release",
+            "configurePreset": "windows-ninja-msvc",
+            "configuration": "Release"
+        },
+        {
+            "name": "windows-ninja-msvc-debug",
+            "displayName": "Debug",
+            "configurePreset": "windows-ninja-msvc",
+            "configuration": "Debug"
+        },
+        {
+            "name": "windows-ninja-msvc-ci-release",
+            "displayName": "Release",
+            "configurePreset": "windows-ninja-msvc-ci",
+            "configuration": "Release"
+        },
+        {
+            "name": "windows-ninja-msvc-ci-debug",
+            "displayName": "Debug",
+            "configurePreset": "windows-ninja-msvc-ci",
+            "configuration": "Debug"
+        },
+        {
+            "name": "linux-clang-release",
+            "displayName": "Release",
+            "configurePreset": "linux-clang",
+            "configuration": "Release"
+        },
+        {
+            "name": "linux-clang-debug",
+            "displayName": "Debug",
+            "configurePreset": "linux-clang",
+            "configuration": "Debug"
+        },
+        {
+            "name": "linux-clang-ci-release",
+            "displayName": "Release",
+            "configurePreset": "linux-clang-ci",
+            "configuration": "Release"
+        },
+        {
+            "name": "linux-clang-ci-debug",
+            "displayName": "Debug",
+            "configurePreset": "linux-clang-ci",
+            "configuration": "Debug"
+        },
+        {
+            "name": "linux-gcc-release",
+            "displayName": "Release",
+            "configurePreset": "linux-gcc",
+            "configuration": "Release"
+        },
+        {
+            "name": "linux-gcc-debug",
+            "displayName": "Debug",
+            "configurePreset": "linux-gcc",
+            "configuration": "Debug"
+        },
+        {
+            "name": "linux-gcc-ci-release",
+            "displayName": "Release",
+            "configurePreset": "linux-gcc-ci",
+            "configuration": "Release"
+        },
+        {
+            "name": "linux-gcc-ci-debug",
+            "displayName": "Debug",
+            "configurePreset": "linux-gcc-ci",
+            "configuration": "Debug"
+        }
+    ]
+}

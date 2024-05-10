@@ -1,0 +1,17 @@
+# Allow looking at files higher up in the directory tree
+root = false
+
+# Set default editor config for all files:
+# - use utf-8 as default
+# - 4 spaces, no trailing whitespaces
+# - final newline for slightly cleaner diffs when changing the last line
+[*]
+charset = utf-8
+indent_size = 4
+indent_style = space
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+# Override trailing whitespace setting for Markdown since there it's actually useful
+[*.{md}]
+trim_trailing_whitespace = false

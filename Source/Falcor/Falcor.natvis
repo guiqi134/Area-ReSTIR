@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+    <!-- Object reference -->
+    <Type Name="Falcor::ref&lt;*&gt;">
+        <SmartPointer Usage="Minimal">mPtr</SmartPointer>
+        <DisplayString Condition="mPtr == 0">nullptr</DisplayString>
+        <DisplayString>{(void*)mPtr} refCount={mPtr-&gt;mRefCount} {*mPtr}</DisplayString>
+    </Type>
+    <!-- ObjectID -->
+    <Type Name="Falcor::ObjectID&lt;*,*,*&gt;">
+        <DisplayString Condition="mID != kInvalidID">{mID}</DisplayString>
+        <DisplayString Condition="mID == kInvalidID">InvalidID</DisplayString>
+    </Type>
+    <!-- Math types -->
+    <Type Name="Falcor::math::vector&lt;*,1&gt;">
+        <DisplayString>{x,g}</DisplayString>
+        <Expand>
+            <Item Name="x">x</Item>
+        </Expand>
+    </Type>
+    <Type Name="Falcor::math::vector&lt;*,2&gt;">
+        <DisplayString>{x,g}, {y,g}</DisplayString>
+        <Expand>
+            <Item Name="x">x</Item>
+            <Item Name="y">y</Item>
+        </Expand>
+    </Type>
+    <Type Name="Falcor::math::vector&lt;*,3&gt;">
+        <DisplayString>{x,g}, {y,g}, {z,g}</DisplayString>
+        <Expand>
+            <Item Name="x">x</Item>
+            <Item Name="y">y</Item>
+            <Item Name="z">z</Item>
+        </Expand>
+    </Type>
+    <Type Name="Falcor::math::vector&lt;*,4&gt;">
+        <DisplayString>{x,g}, {y,g}, {z,g}, {w,g}</DisplayString>
+        <Expand>
+            <Item Name="x">x</Item>
+            <Item Name="y">y</Item>
+            <Item Name="z">z</Item>
+            <Item Name="w">w</Item>
+        </Expand>
+    </Type>
+    <Type Name="Falcor::math::matrix&lt;*,3,3&gt;">
+        <DisplayString>[{mRows[0],g}] [{mRows[1],g}] [{mRows[2],g}]</DisplayString>
+        <Expand>
+            <Synthetic Name="[row 0]">
+                <DisplayString>[{mRows[0]}]</DisplayString>
+            </Synthetic>
+            <Synthetic Name="[row 1]">
+                <DisplayString>[{mRows[1]}]</DisplayString>
+            </Synthetic>
+            <Synthetic Name="[row 2]">
+                <DisplayString>[{mRows[2]}]</DisplayString>
+            </Synthetic>
+        </Expand>
+    </Type>
+    <Type Name="Falcor::math::matrix&lt;*,3,4&gt;">
+        <DisplayString>[{mRows[0],g}] [{mRows[1],g}] [{mRows[2],g}]</DisplayString>
+        <Expand>
+            <Synthetic Name="[row 0]">
+                <DisplayString>[{mRows[0]}]</DisplayString>
+            </Synthetic>
+            <Synthetic Name="[row 1]">
+                <DisplayString>[{mRows[1]}]</DisplayString>
+            </Synthetic>
+            <Synthetic Name="[row 2]">
+                <DisplayString>[{mRows[2]}]</DisplayString>
+            </Synthetic>
+        </Expand>
+    </Type>
+    <Type Name="Falcor::math::matrix&lt;*,4,4&gt;">
+        <DisplayString>[{mRows[0],g}] [{mRows[1],g}] [{mRows[2],g}] [{mRows[3],g}]</DisplayString>
+        <Expand>
+            <Synthetic Name="[row 0]">
+                <DisplayString>[{mRows[0]}]</DisplayString>
+            </Synthetic>
+            <Synthetic Name="[row 1]">
+                <DisplayString>[{mRows[1]}]</DisplayString>
+            </Synthetic>
+            <Synthetic Name="[row 2]">
+                <DisplayString>[{mRows[2]}]</DisplayString>
+            </Synthetic>
+            <Synthetic Name="[row 3]">
+                <DisplayString>[{mRows[3]}]</DisplayString>
+            </Synthetic>
+        </Expand>
+    </Type>
+    <Type Name="Falcor::math::quat&lt;*&gt;">
+        <DisplayString>({x,g}, {y,g}, {z,g}), {w,g}</DisplayString>
+        <Expand>
+            <Item Name="x">x</Item>
+            <Item Name="y">y</Item>
+            <Item Name="z">z</Item>
+            <Item Name="w">w</Item>
+        </Expand>
+    </Type>
+    <!-- These were copied from https://github.com/nlohmann/json/blob/develop/nlohmann_json.natvis -->
+    <!-- License: https://github.com/nlohmann/json/blob/develop/LICENSE.MIT -->
+    <Type Name="nlohmann::basic_json&lt;*&gt;">
+        <DisplayString Condition="m_type == nlohmann::detail::value_t::null">null</DisplayString>
+        <DisplayString Condition="m_type == nlohmann::detail::value_t::object">{*(m_value.object)}</DisplayString>
+        <DisplayString Condition="m_type == nlohmann::detail::value_t::array">{*(m_value.array)}</DisplayString>
+        <DisplayString Condition="m_type == nlohmann::detail::value_t::string">{*(m_value.string)}</DisplayString>
+        <DisplayString Condition="m_type == nlohmann::detail::value_t::boolean">{m_value.boolean}</DisplayString>
+        <DisplayString Condition="m_type == nlohmann::detail::value_t::number_integer">{m_value.number_integer}</DisplayString>
+        <DisplayString Condition="m_type == nlohmann::detail::value_t::number_unsigned">{m_value.number_unsigned}</DisplayString>
+        <DisplayString Condition="m_type == nlohmann::detail::value_t::number_float">{m_value.number_float}</DisplayString>
+        <DisplayString Condition="m_type == nlohmann::detail::value_t::discarded">discarded</DisplayString>
+        <Expand>
+            <ExpandedItem Condition="m_type == nlohmann::detail::value_t::object">
+                *(m_value.object),view(simple)
+            </ExpandedItem>
+            <ExpandedItem Condition="m_type == nlohmann::detail::value_t::array">
+                *(m_value.array),view(simple)
+            </ExpandedItem>
+        </Expand>
+    </Type>
+    <!--    skip the pair first/second members in the treeview while traversing a map.
+            Only works in VS 2015 Update 2 and beyond using the new visualization -->
+    <Type Name="std::pair&lt;*, nlohmann::basic_json&lt;*&gt;&gt;" IncludeView="MapHelper">
+        <DisplayString>{second}</DisplayString>
+        <Expand>
+            <ExpandedItem>second</ExpandedItem>
+        </Expand>
+    </Type>
+</AutoVisualizer>

@@ -1,0 +1,97 @@
+/***************************************************************************
+ # Copyright (c) 2015-23, NVIDIA CORPORATION. All rights reserved.
+ #
+ # Redistribution and use in source and binary forms, with or without
+ # modification, are permitted provided that the following conditions
+ # are met:
+ #  * Redistributions of source code must retain the above copyright
+ #    notice, this list of conditions and the following disclaimer.
+ #  * Redistributions in binary form must reproduce the above copyright
+ #    notice, this list of conditions and the following disclaimer in the
+ #    documentation and/or other materials provided with the distribution.
+ #  * Neither the name of NVIDIA CORPORATION nor the names of its
+ #    contributors may be used to endorse or promote products derived
+ #    from this software without specific prior written permission.
+ #
+ # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS "AS IS" AND ANY
+ # EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+ # PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+ # CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ # EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ # PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ # PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+ # OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ **************************************************************************/
+#pragma once
+
+/*******************************************************************
+                    Glue code for CPU/GPU compilation
+*******************************************************************/
+
+#if (defined(__STDC_HOSTED__) || defined(__cplusplus)) // we're in C-compliant compiler, probably host
+#define HOST_CODE 1
+#endif
+
+// TODO: Replace by bit packing functions
+#define EXTRACT_BITS(bits, offset, value) (((value) >> (offset)) & ((1 << (bits)) - 1))
+#define IS_BIT_SET(value, bitOffset) ((value & (1 << bitOffset)) != 0)
+// TODO: Add check that "value" fits into "bits"
+#define PACK_BITS(bits, offset, flags, value) \
+    ((((value) & ((1 << (bits)) - 1)) << (offset)) | ((flags) & (~(((1 << (bits)) - 1) << (offset)))))
+#define PACK_BITS_UNSAFE(bits, offset, flags, value) (((value) << (offset)) | ((flags) & (~(((1 << (bits)) - 1) << (offset)))))
+
+#ifdef HOST_CODE
+/*******************************************************************
+                    CPU declarations
+*******************************************************************/
+#define BEGIN_NAMESPACE(name) \
+    namespace name            \
+    {
+#define END_NAMESPACE }
+#define BEGIN_NAMESPACE_FALCOR BEGIN_NAMESPACE(Falcor)
+#define END_NAMESPACE_FALCOR END_NAMESPACE
+
+#define SETTER_DECL
+#define CONST_FUNCTION const
+#define STD_NAMESPACE std::
+
+#include "Core/Enum.h"
+#include "Utils/Math/ScalarMath.h"
+#include "Utils/Math/Vector.h"
+#include "Utils/Math/Matrix.h"
+#include <algorithm>
+
+namespace Falcor
+{
+    using math::sign;
+    using math::f16tof32;
+    using math::f32tof16;
+    using math::asfloat;
+    using math::asfloat16;
+    using math::asint;
+    using math::asuint;
+    using math::asuint16;
+}
+
+#else // HOST_CODE
+
+/*******************************************************************
+                    HLSL declarations
+*******************************************************************/
+#define inline
+#define constexpr const
+#define BEGIN_NAMESPACE_FALCOR
+#define END_NAMESPACE_FALCOR
+#define BEGIN_NAMESPACE(name)
+#define END_NAMESPACE
+#define SETTER_DECL [mutating]
+#define CONST_FUNCTION
+#define STD_NAMESPACE
+
+#define FALCOR_ENUM_INFO(T, ...)
+#define FALCOR_ENUM_REGISTER(T)
+
+#endif // HOST_CODE
