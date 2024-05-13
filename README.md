@@ -7,7 +7,7 @@
 > **Area ReSTIR: Resampling for Real-Time Defocus and Antialiasing**<br>
 > Song Zhang* (University of Utah), Daqi Lin* (NVIDIA), Markus Kettunen (NVIDIA), Cem Yuksel (University of Utah), Chris Wyman (NVIDIA)<br>
 > (*Joint first authors) <br>
-> [Utah Graphics Research Page]() <br>
+> [Utah Graphics Research Page](https://graphics.cs.utah.edu/research/projects/area-restir/) <br>
 > [NVIDIA Real-Time Graphics Research Page](https://research.nvidia.com/labs/rtr/publication/zhang2024area/)
 
 Area ReSTIR extends ReSTIR reservoirs to also integrate each pixel's 4D ray space, including 2D areas on the film and lens. To maximize resampling quality on subpixel and lens region, it also includes novel subpixel-tracking temporal reuse and reconnection shift mapping. 
