@@ -24,29 +24,17 @@ import Reservoir;
 import EvalContext;
 import PixelAreaSampleData;
 
-#define USE_PACKED_DATA 0
-
 StructuredBuffer<PackedLocalEmissiveTriangle> emissiveTriangles;
 StructuredBuffer<PackedHitInfo> finalPrimaryHits;
-#if USE_PACKED_DATA
-StructuredBuffer<PackedSurfaceData> surfaceData;
-StructuredBuffer<PackedFinalSample> finalSamples;
-StructuredBuffer<PackedLoadedLightSample> lightTileData;
-StructuredBuffer<PackedReservoir> reservoirs;
-#else
 StructuredBuffer<SurfaceData> surfaceData;
 StructuredBuffer<FinalSample> finalSamples;
 StructuredBuffer<LoadedLightSample> lightTileData;
 StructuredBuffer<Reservoir> reservoirs;
-#endif
-
 StructuredBuffer<float> temporalMISPDFs;
 StructuredBuffer<float3> temporalMISViewDirs;
-// StructuredBuffer<float2> temporalMISLensUV;
 StructuredBuffer<JacobianEvalData> temporalMISJacobianData;
 StructuredBuffer<float3> temporalMISPrimHitNormals;
 StructuredBuffer<PackedHitInfo> temporalMISPrimaryHits;
-
 StructuredBuffer<EvalContext> resEvalContext;
 StructuredBuffer<CameraData> prevCameraData;
 
