@@ -7,7 +7,7 @@
 > **Area ReSTIR: Resampling for Real-Time Defocus and Antialiasing**<br>
 > Song Zhang* (University of Utah), Daqi Lin* (NVIDIA), Markus Kettunen (NVIDIA), Cem Yuksel (University of Utah), Chris Wyman (NVIDIA)<br>
 > (*Joint first authors) <br>
-> [Utah Graphics Research Page]() <br>
+> [Utah Graphics Research Page](https://graphics.cs.utah.edu/research/projects/area-restir/) <br>
 > [NVIDIA Real-Time Graphics Research Page](https://research.nvidia.com/labs/rtr/publication/zhang2024area/)
 
 Area ReSTIR extends ReSTIR reservoirs to also integrate each pixel's 4D ray space, including 2D areas on the film and lens. To maximize resampling quality on subpixel and lens region, it also includes novel subpixel-tracking temporal reuse and reconnection shift mapping. 
@@ -35,7 +35,9 @@ After cloning the repository:
 - Open `build/window-vs2022/Falcor.sln` and the `Build Solution` in the `Release` configuration
 
 ## Run the demo
-- execute `RunAreaReSTIR.bat`
+- Before running the program, download the Bistro scene demo from [Google Drive](https://drive.google.com/file/d/1tRyFISyMozNMlHVF1q_iTNbpRvpEgyTp/view?usp=sharing).
+- Unzip and put everything under `data\Bistro\`.
+- Execute `RunAreaReSTIR.bat`.
 - The GUI contains self-explanatory settings to turn on/off different components of Area ReSTIR.  
 
 ## Test with more scenes
