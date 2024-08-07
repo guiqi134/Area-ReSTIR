@@ -11,6 +11,7 @@
 #include "Utils/Sampling/AliasTable.h"
 #include "Utils/Debug/PixelDebug.h"
 #include "Utils/Scripting/ScriptBindings.h"
+#include "Utils/StringUtils.h"
 #include "Scene/Scene.h"
 #include "Scene/Lights/LightCollection.h"
 #include "Scene/Lights/Light.h"
@@ -200,6 +201,8 @@ namespace Falcor
         */
         bool renderUI(Gui::Widgets& widget);
 
+        bool onKeyEvents(const KeyboardEvent& keyEvent);
+
         /** Returns the current configuration.
         */
         Options getOptions() const { return mOptions; }
@@ -247,6 +250,7 @@ namespace Falcor
         void setSubPixelRandomOption(GBufferBase::SubPixelRandom subpixelRandom) { mOptions.subPixelRandom = subpixelRandom; }
         void updatePrograms();
         void setRecompile(bool recompile) { mRecompile = recompile; }
+
 
     private:
         ref<Scene> mpScene;                           ///< Scene.

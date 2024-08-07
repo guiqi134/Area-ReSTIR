@@ -25,6 +25,7 @@ def render_graph_PathTracer():
             "temporalMode" : "FractionalMotion_Shifting2RIS",
             # "temporalMode" : "IntegerMotion (Origin)",
             "temporalShiftMappingModeRIS1" : "OnlyRandomReplay", "temporalShiftMappingModeRIS2" : "MIS", "spatialShiftMappingMode" : "MIS",
+            "optimizeShift2RIS" : False,
         }
     }
 

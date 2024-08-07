@@ -716,6 +716,11 @@ bool PathTracer::onMouseEvent(const MouseEvent& mouseEvent)
     return mpPixelDebug->onMouseEvent(mouseEvent);
 }
 
+bool PathTracer::onKeyEvent(const KeyboardEvent& keyEvent)
+{
+    return mpAreaReSTIR->onKeyEvents(keyEvent);
+}
+
 void PathTracer::reset()
 {
     mParams.frameCount = 0;

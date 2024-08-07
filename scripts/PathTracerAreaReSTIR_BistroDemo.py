@@ -61,5 +61,8 @@ if pauseClock:
 
 scene = "../data/Bistro/BistroExteriorOrigin.pyscene"
 m.loadScene(scene, buildFlags=(SceneBuilderFlags.DontMergeMaterials | SceneBuilderFlags.DontOptimizeMaterials))
-m.scene.camera.animated = True
+m.scene.camera.animated = False
 m.scene.animated = True
+
+# Update toneMapping pass
+PathTracer.updatePass("ToneMapper", {'autoExposure': False, 'exposureCompensation': 0.0})

@@ -53,7 +53,7 @@ struct TemporalResampling
     StructuredBuffer<EvalContext> prevPixelCenterEvalContext;
     StructuredBuffer<CameraData> prevCameraData;
     StructuredBuffer<float> temporalMISPDFs;
-    StructuredBuffer<EvalContext> temporalMISEvalContexts;
+    // StructuredBuffer<EvalContext> temporalMISEvalContexts;
     StructuredBuffer<JacobianEvalData> temporalMISJacobianData;
     StructuredBuffer<float3> temporalMISPrimHitNormals;
     StructuredBuffer<PackedHitInfo> temporalMISPrimaryHits;

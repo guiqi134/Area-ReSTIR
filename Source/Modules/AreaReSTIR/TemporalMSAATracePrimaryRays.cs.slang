@@ -30,7 +30,7 @@ struct Pass
     StructuredBuffer<EvalContext> prevResEvalContext;
     StructuredBuffer<CameraData> prevCameraData;
     RWStructuredBuffer<float> temporalMISPDFs;
-    RWStructuredBuffer<EvalContext> temporalMISEvalContexts;
+    // RWStructuredBuffer<EvalContext> temporalMISEvalContexts;
     RWStructuredBuffer<JacobianEvalData> temporalMISJacobianData;
     RWStructuredBuffer<float3> temporalMISViewDirs;
     RWStructuredBuffer<float3> temporalMISPrimHitNormals;

@@ -256,7 +256,47 @@ namespace Falcor
             widget.tooltip("Use unbiased version of ReSTIR by querying extra visibility rays.");
         }
 
+        if (auto group = widget.group("Profiles"))
+        {
+            group.text("Global Resources:");
+            group.text(std::format("Reservoir buffer size: {}", formatByteSize(mDirectLightingResources.pReservoirs->getSize())));
+            group.text(std::format("Previous reservoir buffer size: {}", formatByteSize(mDirectLightingResources.pPrevReservoirs->getSize())));
+            group.text(std::format("Evaluation reservoir context buffer size: {}", formatByteSize(mDirectLightingResources.pResEvalContext->getSize())));
+            group.text(std::format("Previous reservoir evaluation context buffer size: {}", formatByteSize(mDirectLightingResources.pPrevResEvalContext->getSize())));
+            group.text(std::format("Pixel center evaluation context buffer size: {}", formatByteSize(mDirectLightingResources.pPixelCenterEvalContext->getSize())));
+            group.text(std::format("Previous pixel center evaluation context buffer size: {}", formatByteSize(mDirectLightingResources.pPrevPixelCenterEvalContext->getSize())));
+            group.text(std::format("Final sample buffer size: {}", formatByteSize(mDirectLightingResources.pFinalSamples->getSize())));
+            group.text(std::format("Final primary hits buffer size: {}", formatByteSize(mDirectLightingResources.pFinalPrimaryHits->getSize())));
+
+            group.text("Temporal Optimize Pretrace Resources:");
+            group.text(std::format("MIS PDFs data buffer size: {}", formatByteSize(mDirectLightingResources.pTemporalMISPDFs->getSize())));
+            group.text(std::format("MIS Jacobian data buffer size: {}", formatByteSize(mDirectLightingResources.pTemporalMISJacobianData->getSize())));
+            group.text(std::format("MIS primary hit normals buffer size: {}", formatByteSize(mDirectLightingResources.pTemporalMISPrimHitNormals->getSize())));
+            group.text(std::format("MIS primary hits buffer size: {}", formatByteSize(mDirectLightingResources.pTemporalMISPrimaryHits->getSize())));
+        }
+
         dirty |= mRecompile;
+
+        return dirty;
+    }
+
+    bool AreaReSTIR::onKeyEvents(const KeyboardEvent& keyEvent)
+    {
+        bool dirty = false;
+
+        if (keyEvent.type == KeyboardEvent::Type::KeyPressed && keyEvent.key == Input::Key::Key1)
+        {
+            mOptions.reuseLensSample = false;
+            mOptions.reuseSubpixelSample = false;
+            dirty = true;
+        }
+
+        if (keyEvent.type == KeyboardEvent::Type::KeyPressed && keyEvent.key == Input::Key::Key2)
+        {
+            mOptions.reuseLensSample = true;
+            mOptions.reuseSubpixelSample = true;
+            dirty = true;
+        }
 
         return dirty;
     }
@@ -488,33 +528,44 @@ namespace Falcor
             }
             // Following is for temporal MSAA pretracing pass
             // The max size allowed is 2GB, so it's not able to multiple ReSTIR passes' temporal data in one buffer.
-            if (!resources.pTemporalMISPDFs || resources.pTemporalMISPDFs->getElementCount() < 16u * elementCount)
+            if (mOptions.optimizeShift2RIS && mOptions.temporalMode == TemporalReuseMode::FractionalMotion_Shifting2RIS)
             {
-                resources.pTemporalMISPDFs = mpDevice->createStructuredBuffer(reflectVar["temporalMISPDFs"], 16u * elementCount, ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess, MemoryType::DeviceLocal, nullptr, false);
+                if (!resources.pTemporalMISPDFs || resources.pTemporalMISPDFs->getElementCount() < 16u * elementCount)
+                {
+                    resources.pTemporalMISPDFs = mpDevice->createStructuredBuffer(reflectVar["temporalMISPDFs"], 16u * elementCount, ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess, MemoryType::DeviceLocal, nullptr, false);
+                }
+                //if (!resources.pTemporalMISEvalContexts || resources.pTemporalMISEvalContexts->getElementCount() < 16u * elementCount)
+                //{
+                //    resources.pTemporalMISEvalContexts = mpDevice->createStructuredBuffer(reflectVar["resEvalContext"], 16u * elementCount, ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess, MemoryType::DeviceLocal, nullptr, false);
+                //}
+                //if (!resources.pTemporalMISViewDirs || resources.pTemporalMISViewDirs->getElementCount() < reservoirBlockCount * 8u * elementCount)
+                //{
+                //    resources.pTemporalMISViewDirs = mpDevice->createStructuredBuffer(reflectVar["temporalMISViewDirs"], reservoirBlockCount * 8u * elementCount, ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess, MemoryType::DeviceLocal, nullptr, false);
+                //}
+                //if (!resources.pTemporalMISLensUV || resources.pTemporalMISLensUV->getElementCount() < elementCount)
+                //{
+                //    resources.pTemporalMISLensUV = mpDevice->createStructuredBuffer(reflectVar["temporalMISLensUV"], resources.perPixelMsaaRayCount * elementCount, ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess, MemoryType::DeviceLocal, nullptr, false);
+                //}
+                if (!resources.pTemporalMISJacobianData || resources.pTemporalMISJacobianData->getElementCount() < 8u * elementCount)
+                {
+                    resources.pTemporalMISJacobianData = mpDevice->createStructuredBuffer(reflectVar["temporalMISJacobianData"], 8u * elementCount, ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess, MemoryType::DeviceLocal, nullptr, false);
+                }
+                if (!resources.pTemporalMISPrimHitNormals || resources.pTemporalMISPrimHitNormals->getElementCount() < 8u * elementCount)
+                {
+                    resources.pTemporalMISPrimHitNormals = mpDevice->createStructuredBuffer(reflectVar["temporalMISPrimHitNormals"], 8u * elementCount, ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess, MemoryType::DeviceLocal, nullptr, false);
+                }
+                if (!resources.pTemporalMISPrimaryHits || resources.pTemporalMISPrimaryHits->getElementCount() < 8u * elementCount)
+                {
+                    resources.pTemporalMISPrimaryHits = mpDevice->createStructuredBuffer(reflectVar["temporalMISPrimaryHits"], 8u * elementCount, ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess, MemoryType::DeviceLocal, nullptr, false);
+                }
             }
-            if (!resources.pTemporalMISEvalContexts || resources.pTemporalMISEvalContexts->getElementCount() < 16u * elementCount)
+            else 
             {
-                resources.pTemporalMISEvalContexts = mpDevice->createStructuredBuffer(reflectVar["resEvalContext"], 16u * elementCount, ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess, MemoryType::DeviceLocal, nullptr, false);
-            }
-            //if (!resources.pTemporalMISViewDirs || resources.pTemporalMISViewDirs->getElementCount() < reservoirBlockCount * 8u * elementCount)
-            //{
-            //    resources.pTemporalMISViewDirs = mpDevice->createStructuredBuffer(reflectVar["temporalMISViewDirs"], reservoirBlockCount * 8u * elementCount, ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess, MemoryType::DeviceLocal, nullptr, false);
-            //}
-            //if (!resources.pTemporalMISLensUV || resources.pTemporalMISLensUV->getElementCount() < elementCount)
-            //{
-            //    resources.pTemporalMISLensUV = mpDevice->createStructuredBuffer(reflectVar["temporalMISLensUV"], resources.perPixelMsaaRayCount * elementCount, ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess, MemoryType::DeviceLocal, nullptr, false);
-            //}
-            if (!resources.pTemporalMISJacobianData || resources.pTemporalMISJacobianData->getElementCount() < 8u * elementCount)
-            {
-                resources.pTemporalMISJacobianData = mpDevice->createStructuredBuffer(reflectVar["temporalMISJacobianData"], 8u * elementCount, ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess, MemoryType::DeviceLocal, nullptr, false);
-            }
-            if (!resources.pTemporalMISPrimHitNormals || resources.pTemporalMISPrimHitNormals->getElementCount() < 8u * elementCount)
-            {
-                resources.pTemporalMISPrimHitNormals = mpDevice->createStructuredBuffer(reflectVar["temporalMISPrimHitNormals"], 8u * elementCount, ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess, MemoryType::DeviceLocal, nullptr, false);
-            }
-            if (!resources.pTemporalMISPrimaryHits || resources.pTemporalMISPrimaryHits->getElementCount() < 8u * elementCount)
-            {
-                resources.pTemporalMISPrimaryHits = mpDevice->createStructuredBuffer(reflectVar["temporalMISPrimaryHits"], 8u * elementCount, ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess, MemoryType::DeviceLocal, nullptr, false);
+                // Release all buffers
+                if (resources.pTemporalMISPDFs) resources.pTemporalMISPDFs = nullptr;
+                if (resources.pTemporalMISJacobianData) resources.pTemporalMISJacobianData = nullptr;
+                if (resources.pTemporalMISPrimHitNormals) resources.pTemporalMISPrimHitNormals = nullptr;
+                if (resources.pTemporalMISPrimaryHits) resources.pTemporalMISPrimaryHits = nullptr;
             }
         };
 
@@ -905,7 +956,7 @@ namespace Falcor
         var["frameDim"] = mFrameDim;
         var["frameIndex"] = mFrameIndex;
         var["temporalMISPDFs"] = resources.pTemporalMISPDFs;
-        var["temporalMISEvalContexts"] = resources.pTemporalMISEvalContexts;
+        //var["temporalMISEvalContexts"] = resources.pTemporalMISEvalContexts;
         var["temporalMISViewDirs"] = resources.pTemporalMISViewDirs;
         //var["temporalMISLensUV"] = resources.pTemporalMISLensUV;
         var["temporalMISJacobianData"] = resources.pTemporalMISJacobianData;
@@ -977,7 +1028,7 @@ namespace Falcor
             var["shiftMappingModeRIS1"] = uint(mOptions.temporalShiftMappingModeRIS1);
             var["temporalMISPDFs"] = resources.pTemporalMISPDFs;
             //var["temporalMISViewDirs"] = resources.pTemporalMISViewDirs;
-            var["temporalMISEvalContexts"] = resources.pTemporalMISEvalContexts;
+            //var["temporalMISEvalContexts"] = resources.pTemporalMISEvalContexts;
             var["temporalMISJacobianData"] = resources.pTemporalMISJacobianData;
             var["temporalMISPrimHitNormals"] = resources.pTemporalMISPrimHitNormals;
             var["temporalMISPrimaryHits"] = resources.pTemporalMISPrimaryHits;
