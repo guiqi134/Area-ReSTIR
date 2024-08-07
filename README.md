@@ -39,6 +39,8 @@ After cloning the repository:
 - Unzip and put everything under `data\Bistro\`.
 - Execute `RunAreaReSTIR_Bistro.bat`.
 - The GUI contains self-explanatory settings to turn on/off different components of Area ReSTIR.
+    - To quickly switch between baseline ReSTIR DI and Area ReSTIR, press key "1" to use ReSTIR DI and key "2" to use Area ReSTIR.
+    - If you're experiencing out of memory issue, add `"optimizeShift2RIS" : False` at the end of `areaReSITROptions` inside `PathTracerAreaReSTIR_BistroDemo.py`. In this case, the memeory cost can be reduce, but performance will be worse.
 
 ## Test with more scenes
 - You can test your custom scene by running Bin\x64\Release\Mogwai.exe first, then load `PathTracerAreaReSTIR.py`, and finally load a scene file.

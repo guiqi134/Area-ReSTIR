@@ -258,21 +258,22 @@ namespace Falcor
 
         if (auto group = widget.group("Profiles"))
         {
-            group.text("Global Resources:");
-            group.text(std::format("Reservoir buffer size: {}", formatByteSize(mDirectLightingResources.pReservoirs->getSize())));
-            group.text(std::format("Previous reservoir buffer size: {}", formatByteSize(mDirectLightingResources.pPrevReservoirs->getSize())));
-            group.text(std::format("Evaluation reservoir context buffer size: {}", formatByteSize(mDirectLightingResources.pResEvalContext->getSize())));
-            group.text(std::format("Previous reservoir evaluation context buffer size: {}", formatByteSize(mDirectLightingResources.pPrevResEvalContext->getSize())));
-            group.text(std::format("Pixel center evaluation context buffer size: {}", formatByteSize(mDirectLightingResources.pPixelCenterEvalContext->getSize())));
-            group.text(std::format("Previous pixel center evaluation context buffer size: {}", formatByteSize(mDirectLightingResources.pPrevPixelCenterEvalContext->getSize())));
-            group.text(std::format("Final sample buffer size: {}", formatByteSize(mDirectLightingResources.pFinalSamples->getSize())));
-            group.text(std::format("Final primary hits buffer size: {}", formatByteSize(mDirectLightingResources.pFinalPrimaryHits->getSize())));
+            group.text("> Resampling Global Resources:");
+            group.text("Reservoir buffer size: {}" + mDirectLightingResources.pReservoirs ? formatByteSize(mDirectLightingResources.pReservoirs->getSize()) : "0");
+            group.text("Previous reservoir buffer size: {}" + mDirectLightingResources.pPrevReservoirs ? formatByteSize(mDirectLightingResources.pPrevReservoirs->getSize()) : "0");
+            group.text("Evaluation reservoir context buffer size: {}" + mDirectLightingResources.pResEvalContext ? formatByteSize(mDirectLightingResources.pResEvalContext->getSize()) : "0");
+            group.text("Previous reservoir evaluation context buffer size: {}" + mDirectLightingResources.pPrevResEvalContext ? formatByteSize(mDirectLightingResources.pPrevResEvalContext->getSize()) : "0");
+            group.text("Pixel center evaluation context buffer size: {}" + mDirectLightingResources.pPixelCenterEvalContext ? formatByteSize(mDirectLightingResources.pPixelCenterEvalContext->getSize()) : "0");
+            group.text("Previous pixel center evaluation context buffer size: {}" + mDirectLightingResources.pPrevPixelCenterEvalContext ? formatByteSize(mDirectLightingResources.pPrevPixelCenterEvalContext->getSize()) : "0");
+            group.text("Final sample buffer size: {}" + mDirectLightingResources.pFinalSamples ? formatByteSize(mDirectLightingResources.pFinalSamples->getSize()) : "0");
+            group.text("Final primary hits buffer size: {}" + mDirectLightingResources.pFinalPrimaryHits ? formatByteSize(mDirectLightingResources.pFinalPrimaryHits->getSize()) : "0");
 
-            group.text("Temporal Optimize Pretrace Resources:");
-            group.text(std::format("MIS PDFs data buffer size: {}", formatByteSize(mDirectLightingResources.pTemporalMISPDFs->getSize())));
-            group.text(std::format("MIS Jacobian data buffer size: {}", formatByteSize(mDirectLightingResources.pTemporalMISJacobianData->getSize())));
-            group.text(std::format("MIS primary hit normals buffer size: {}", formatByteSize(mDirectLightingResources.pTemporalMISPrimHitNormals->getSize())));
-            group.text(std::format("MIS primary hits buffer size: {}", formatByteSize(mDirectLightingResources.pTemporalMISPrimaryHits->getSize())));
+            group.text("> Temporal Optimize Pretrace Resources:");
+            group.text("MIS PDFs data buffer size: {}" + mDirectLightingResources.pTemporalMISPDFs ? formatByteSize(mDirectLightingResources.pTemporalMISPDFs->getSize()) : "0");
+            group.text("MIS Jacobian data buffer size: {}" + mDirectLightingResources.pTemporalMISJacobianData ? formatByteSize(mDirectLightingResources.pTemporalMISJacobianData->getSize()) : "0");
+            group.text("MIS primary hit normals buffer size: {}" + mDirectLightingResources.pTemporalMISPrimHitNormals ? formatByteSize(mDirectLightingResources.pTemporalMISPrimHitNormals->getSize()) : "0");
+            group.text("MIS primary hits buffer size: {}" + mDirectLightingResources.pTemporalMISPrimaryHits? formatByteSize(mDirectLightingResources.pTemporalMISPrimaryHits->getSize()) : "0");
+
         }
 
         dirty |= mRecompile;
