@@ -26,6 +26,7 @@ See README_Falcor.md for the original README file provided by Falcor.
 - [Windows 10 SDK version 10.0.19041.1 Or Newer](https://developer.microsoft.com/en-us/windows/downloads/sdk-archive)
 - NVIDIA driver 530.xx and above
 - A GPU supports DirectX Raytracing
+    - To successfully run the program under default settings, the GPU memory should be **at least 12 GB**. Otherwise, see "Run the demo" section for how to scale down.
 
 ## How to compile
 **IMPORTANT:** We use git submodules to download dependencies! Downloading the git repository as a .zip (rather than using git clone) will ensure you lack required dependencies, and the build scripts will fail.

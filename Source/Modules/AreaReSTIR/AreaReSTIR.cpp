@@ -273,7 +273,6 @@ namespace Falcor
             group.text("MIS Jacobian data buffer size: {}" + mDirectLightingResources.pTemporalMISJacobianData ? formatByteSize(mDirectLightingResources.pTemporalMISJacobianData->getSize()) : "0");
             group.text("MIS primary hit normals buffer size: {}" + mDirectLightingResources.pTemporalMISPrimHitNormals ? formatByteSize(mDirectLightingResources.pTemporalMISPrimHitNormals->getSize()) : "0");
             group.text("MIS primary hits buffer size: {}" + mDirectLightingResources.pTemporalMISPrimaryHits? formatByteSize(mDirectLightingResources.pTemporalMISPrimaryHits->getSize()) : "0");
-
         }
 
         dirty |= mRecompile;
