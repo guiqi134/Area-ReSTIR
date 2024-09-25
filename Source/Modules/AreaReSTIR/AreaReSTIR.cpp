@@ -680,7 +680,7 @@ namespace Falcor
     {
         if (!mRecompile) return;
 
-        logInfo("AreaReSTIR::updatePrograms() called");
+        //logInfo("AreaReSTIR::updatePrograms() called");
 
         DefineList commonDefines;
 

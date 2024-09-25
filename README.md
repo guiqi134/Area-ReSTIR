@@ -46,3 +46,14 @@ After cloning the repository:
 ## Test with more scenes
 - You can test your custom scene by running Bin\x64\Release\Mogwai.exe first, then load `PathTracerAreaReSTIR.py`, and finally load a scene file.
 - See `BistroExteriorOrigin.pyscene` for how to create a camera with custom apertures and animation path ([more details](docs/usage/scripting.md)).
+
+
+## Denoising
+
+If you really want to see the denoised results, we also include the SVGF denoised results in another script `PathTracerAreaReSTIR_SVGFDenoised_BistroDemo`, though it's **not recommended**. This is because modern denoiser is not designed to remove the noise from a noisy G-Buffer (i.e. different subpixel and lens location in our case).
+
+So, to minimize the artifacts, the above script only enables AA and Area ReSTIR only reuses subpixel location.
+
+If you encouter any shader errors when loading the scripts, try following solutions:
+- Update your driver to the latest.
+- Set `"computeDerivativeMaually : True"` in the script.

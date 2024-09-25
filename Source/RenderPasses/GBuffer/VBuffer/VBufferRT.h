@@ -69,6 +69,7 @@ private:
     bool mComputeDOF = false;           ///< Flag indicating if depth-of-field is computed for the current frame.
     ref<SampleGenerator> mpSampleGenerator;
     std::unique_ptr<PixelDebug> mpPixelDebug;
+    bool mComputeDerivativeMaually = false;
 
     // UI variables
     bool mUseTraceRayInline = true;
@@ -81,4 +82,5 @@ private:
     } mRaytrace;
 
     ref<ComputePass> mpComputePass;
+    ref<ComputePass> mpComputeDerivativesPass;
 };

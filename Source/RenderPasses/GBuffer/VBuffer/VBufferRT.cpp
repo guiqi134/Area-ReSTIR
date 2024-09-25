@@ -34,10 +34,12 @@ namespace
 {
     const std::string kProgramRaytraceFile = "RenderPasses/GBuffer/VBuffer/VBufferRT.rt.slang";
     const std::string kProgramComputeFile = "RenderPasses/GBuffer/VBuffer/VBufferRT.cs.slang";
+    const std::string kComputeDerivativesFile = "RenderPasses/GBuffer/VBuffer/ComputeDerivatives.cs.slang";
 
     // Scripting options.
     const char kUseTraceRayInline[] = "useTraceRayInline";
     const char kUseDOF[] = "useDOF";
+    const char kComputeDerivativeMaually[] = "computeDerivativeMaually";
 
     // Ray tracing settings that affect the traversal stack size. Set as small as possible.
     const uint32_t kMaxPayloadSizeBytes = 4; // TODO: The shader doesn't need a payload, set this to zero if it's possible to pass a null payload to TraceRay()
@@ -59,6 +61,17 @@ namespace
         { "subPixelUV", "gSubPixelUV", "Sub-pixel UV position", true, ResourceFormat::RG32Float },
         { "lensUV", "gLensUV", "Pixel lens UV position", true, ResourceFormat::RG32Float },
         { "debugMotion", "gDebugMotion", "Debug motion vector", true, ResourceFormat::RG32Float},
+    };
+
+    // Additional output channels for SVGF denoising
+    const ChannelList kVBufferExtraChannelsForSVGF =
+    {
+        { "posW", "gPosW", "Position in world space", true /* optional */, ResourceFormat::RGBA32Float },
+        { "normW", "gNormW", "Shading normal in world space", true /* optional */, ResourceFormat::RGBA32Float },
+        { "albedo", "gAlbedo", "Albedo", true /* optional */, ResourceFormat::RGBA32Float },
+        { "linearZ", "gLinearZ", "Linear Z and slope", true /* optional */, ResourceFormat::RG32Float },
+        { "emissive", "gEmissive", "Emissive color", true /* optional */, ResourceFormat::RGBA32Float },
+        { "pnFwidth",  "gPosNormalFwidth", "Position and guide normal filter width", true /* optional */, ResourceFormat::RG32Float },
     };
 };
 
@@ -91,6 +104,7 @@ RenderPassReflection VBufferRT::reflect(const CompileData& compileData)
 
     // Add all the other outputs.
     addRenderPassOutputs(reflector, kVBufferExtraChannels, ResourceBindFlags::UnorderedAccess, sz);
+    addRenderPassOutputs(reflector, kVBufferExtraChannelsForSVGF, ResourceBindFlags::UnorderedAccess, sz);
 
     return reflector;
 }
@@ -111,6 +125,7 @@ void VBufferRT::execute(RenderContext* pRenderContext, const RenderData& renderD
     {
         pRenderContext->clearUAV(pOutput->getUAV().get(), uint4(0));
         clearRenderPassChannels(pRenderContext, kVBufferExtraChannels, renderData);
+        clearRenderPassChannels(pRenderContext, kVBufferExtraChannelsForSVGF, renderData);
         return;
     }
 
@@ -205,6 +220,7 @@ void VBufferRT::parseProperties(const Properties& props)
     {
         if (key == kUseTraceRayInline) mUseTraceRayInline = value;
         else if (key == kUseDOF) mUseDOF = value;
+        else if (key == kUseDOF) mComputeDerivativeMaually = value;
         // TODO: Check for unparsed fields, including those parsed in base classes.
     }
 }
@@ -215,6 +231,7 @@ void VBufferRT::recreatePrograms()
     mRaytrace.pProgram = nullptr;
     mRaytrace.pVars = nullptr;
     mpComputePass = nullptr;
+    mpComputeDerivativesPass = nullptr;
 }
 
 void VBufferRT::executeRaytrace(RenderContext* pRenderContext, const RenderData& renderData)
@@ -282,7 +299,7 @@ void VBufferRT::executeCompute(RenderContext* pRenderContext, const RenderData& 
     {
     	ProgramDesc desc;
         desc.addShaderModules(mpScene->getShaderModules());
-    	desc.addShaderLibrary(kProgramComputeFile).csEntry("main").setShaderModel(ShaderModel::SM6_5);
+    	desc.addShaderLibrary(kProgramComputeFile).csEntry("main").setShaderModel(ShaderModel::SM6_6);
         desc.addTypeConformances(mpScene->getTypeConformances());
 
         DefineList defines;
@@ -308,6 +325,35 @@ void VBufferRT::executeCompute(RenderContext* pRenderContext, const RenderData& 
 
     mpPixelDebug->prepareProgram(mpComputePass->getProgram(), var);
     mpComputePass->execute(pRenderContext, uint3(mFrameDim, 1));
+
+    // Compute derivatives for SVGF if enabled -> not needed, we can use ddx, ddy, fwidth in SM 6.6
+    //if (mpDevice->isShaderModelSupported(ShaderModel::SM6_6) && renderData["pnFwidth"] != nullptr)
+    if (mComputeDerivativeMaually && renderData["pnFwidth"] != nullptr)
+    {
+        //logInfo("SM 6.6 is not supported, use extra compute shader to compute derivatives");
+        if (!mpComputeDerivativesPass)
+        {
+            ProgramDesc desc;
+            desc.addShaderModules(mpScene->getShaderModules());
+            desc.addShaderLibrary(kComputeDerivativesFile).csEntry("main");
+            desc.addTypeConformances(mpScene->getTypeConformances());
+
+            DefineList defines;
+            defines.add(mpScene->getSceneDefines());
+            mpComputeDerivativesPass = ComputePass::create(mpDevice, desc, defines, true);
+        }
+
+        // No ray tracing, no need to call setRaytracingShaderData() 
+
+        auto rootVar = mpComputeDerivativesPass->getRootVar();
+        rootVar["gPosW"] = renderData.getTexture("posW");
+        rootVar["gNormW"] = renderData.getTexture("normW");
+        rootVar["gPosNormalFwidth"] = renderData.getTexture("pnFwidth");
+        rootVar["gLinearZ"] = renderData.getTexture("linearZ");
+        rootVar["CB"]["gFrameDim"] = mFrameDim;
+        mpPixelDebug->prepareProgram(mpComputeDerivativesPass->getProgram(), var);
+        mpComputeDerivativesPass->execute(pRenderContext, uint3(mFrameDim, 1));
+    }
 }
 
 DefineList VBufferRT::getShaderDefines(const RenderData& renderData) const
@@ -315,6 +361,7 @@ DefineList VBufferRT::getShaderDefines(const RenderData& renderData) const
     DefineList defines;
     defines.add("COMPUTE_DEPTH_OF_FIELD", mComputeDOF ? "1" : "0");
     defines.add("USE_ALPHA_TEST", mUseAlphaTest ? "1" : "0");
+    defines.add("COMPUTE_DERIVATIVE_MAUALLY", mComputeDerivativeMaually ? "1" : "0");
 
     // Setup ray flags.
     RayFlags rayFlags = RayFlags::None;
@@ -325,12 +372,14 @@ DefineList VBufferRT::getShaderDefines(const RenderData& renderData) const
     // For optional I/O resources, set 'is_valid_<name>' defines to inform the program of which ones it can access.
     // TODO: This should be moved to a more general mechanism using Slang.
     defines.add(getValidResourceDefines(kVBufferExtraChannels, renderData));
+    defines.add(getValidResourceDefines(kVBufferExtraChannelsForSVGF, renderData));
     return defines;
 }
 
 void VBufferRT::bindShaderData(const ShaderVar& var, const RenderData& renderData)
 {
     var["gVBufferRT"]["frameDim"] = mFrameDim;
+    var["gVBufferRT"]["invFrameDim"] = mInvFrameDim;
     var["gVBufferRT"]["frameCount"] = mFrameCount;
     var["gVBufferRT"]["subPixelRandom"] = (uint)mSubPixelRandom;
     var["gVBufferRT"]["areaScaler"] = mUseGaussianFilter ? mAreaScaler : 1.f;
@@ -338,6 +387,7 @@ void VBufferRT::bindShaderData(const ShaderVar& var, const RenderData& renderDat
     var["gVBufferRT"]["clampMotionVec"] = mClampMotionVector;
     var["gVBufferRT"]["mvecClampThreshold"] = mMotionVecThreshold;
     var["gVBufferRT"]["sameSubpixelRandomForAllPixels"] = mSameSubpixelRandomForAllPixels;
+    var["gVBufferRT"]["useSVGF"] = renderData["pnFwidth"] != nullptr;
 
     // Bind resources.
     var["gVBuffer"] = getOutput(renderData, kVBufferName);
@@ -350,4 +400,5 @@ void VBufferRT::bindShaderData(const ShaderVar& var, const RenderData& renderDat
         var[channel.texname] = pTex;
     };
     for (const auto& channel : kVBufferExtraChannels) bind(channel);
+    for (const auto& channel : kVBufferExtraChannelsForSVGF) bind(channel);
 }

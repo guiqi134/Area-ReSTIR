@@ -63,14 +63,17 @@ void main(uint3 dispatchThreadId : SV_DispatchThreadID)
     gVBufferRT.writeAux(pixel, ray);
 
     // Also compute the pixel center vbuffer (different from subpixel sample's vbuffer) + motion vector
+    Ray centerRay = ray;
+    HitInfo centerHit = hit;
+    float centerHitT = hitT;
     if (gVBufferRT.subPixelRandom != 0 || gVBufferRT.kComputeDepthOfField || gScene.camera.data.jitterX != 0.0f || gScene.camera.data.jitterY != 0.0f)
     {
         // Trace new ray at the pixel center
-        Ray centerRay = gScene.camera.computeRayPinholeSubPixelRandom(pixel, gVBufferRT.frameDim, float2(0.5f));
+        centerRay = gScene.camera.computeRayPinholeSubPixelRandom(pixel, gVBufferRT.frameDim, float2(0.5f));
 
         // Write center hit
-        HitInfo centerHit;
-        float centerHitT;
+        centerHit;
+        centerHitT;
         if (sceneRayQuery.traceRay(centerRay, centerHit, centerHitT, VBufferRT::kRayFlags, 0xff, false))
         {
             gVBufferCenter[pixel] = centerHit.getData();
@@ -97,7 +100,8 @@ void main(uint3 dispatchThreadId : SV_DispatchThreadID)
         }
     }
 
-    // gDebugMotion[pixel] = gMotionVector[pixel] * gVBufferRT.frameDim * 1000;
+    // Write SVGF inputs data if enabled
+    gVBufferRT.writeSVGFData(pixel, centerRay, centerHit);
 
     if (gVBufferRT.clampMotionVec)
     {

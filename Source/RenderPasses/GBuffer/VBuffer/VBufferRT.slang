@@ -31,6 +31,7 @@ __exported import Utils.Math.Ray;
 import Utils.Math.MathHelpers;
 import Utils.Sampling.SampleGenerator;
 import Utils.Debug.PixelDebug;
+import LoadShadingData;
 
 RWTexture2D<PackedHitInfo> gVBuffer;
 RWTexture2D<PackedHitInfo> gVBufferCenter;
@@ -43,6 +44,14 @@ RWTexture2D<float> gMask;
 RWTexture2D<float2> gSubPixelUV;
 RWTexture2D<float2> gLensUV;
 RWTexture2D<float2> gDebugMotion;
+
+// Addtional outputs for SVGF
+RWTexture2D<float4> gPosW;
+RWTexture2D<float4> gNormW;
+RWTexture2D<float4> gAlbedo;
+RWTexture2D<float2> gLinearZ;
+RWTexture2D<float4> gEmissive;
+RWTexture2D<float2> gPosNormalFwidth;
 
 #define is_valid(name) (is_valid_##name != 0)
 
@@ -70,6 +79,7 @@ struct VBufferRT
     static const uint kRayFlags = RAY_FLAGS;
 
     uint2 frameDim;
+    float2 invFrameDim;
     uint frameCount;
     uint subPixelRandom;
     float areaScaler;
@@ -77,6 +87,7 @@ struct VBufferRT
     bool clampMotionVec;
     float mvecClampThreshold;
     bool sameSubpixelRandomForAllPixels;
+    bool useSVGF;
 
     float2 computeCenterMotionVector(const HitInfo centerHit, const Ray centerRay)
     {
@@ -205,6 +216,53 @@ struct VBufferRT
     {
         // Write view direction.
         if (is_valid(gViewW)) gViewW[pixel] = float4(-ray.dir, 0.f);
+    }
+
+    void writeSVGFData(uint2 pixel, const Ray centerRay, const HitInfo centerHit)
+    {
+        if (!useSVGF) return;
+
+        // Compute additional outputs for SVGF
+        uint materialID = gScene.getMaterialID(centerHit.getInstanceID());
+        let lod = ExplicitLodTextureSampler(0.f);
+        ShadingData sd = loadShadingData(centerHit, centerRay.origin, centerRay.dir, lod);
+        uint hints = getMaterialInstanceHints(centerHit, true);
+        let mi = gScene.materials.getMaterialInstance(sd, lod, hints);
+        let bsdfProperties = mi.getProperties(sd);
+
+        if (is_valid(gPosW))
+        {
+            gPosW[pixel] = float4(sd.posW, 1.f);
+        }
+        if (is_valid(gNormW))
+            gNormW[pixel] = float4(sd.frame.N, 0.f);
+        if (is_valid(gEmissive))
+            gEmissive[pixel] = float4(bsdfProperties.emission, 0.f);
+        if (is_valid(gAlbedo))
+            gAlbedo[pixel] = float4( (bsdfProperties.diffuseReflectionAlbedo + bsdfProperties.diffuseTransmissionAlbedo + bsdfProperties.specularReflectionAlbedo + bsdfProperties.specularTransmissionAlbedo), 1.0f );
+
+#if !COMPUTE_DERIVATIVE_MAUALLY
+        if (is_valid(gLinearZ))
+        {
+            float4 curPosH = mul(gScene.camera.data.viewProjMatNoJitter, float4(sd.posW, 1.f));
+            float curLinearZ = curPosH.w;
+            float3 ddxPosW = ddx(sd.posW);
+            float3 ddyPosW = ddy(sd.posW);
+            float4 curPosH_dx = mul(gScene.camera.data.viewProjMatNoJitter, float4(sd.posW + ddxPosW, 1.f));
+            float4 curPosH_dy = mul(gScene.camera.data.viewProjMatNoJitter, float4(sd.posW + ddxPosW, 1.f));
+            float ddxLinearZ = abs(curPosH_dx.w - curLinearZ);
+            float ddyLinearZ = abs(curPosH_dy.w - curLinearZ);
+            float dLinearZ = max(ddxLinearZ, ddyLinearZ);
+            gLinearZ[pixel] = float2(curLinearZ, dLinearZ);
+        }
+
+        if (is_valid(gPosNormalFwidth))
+        {
+            gPosNormalFwidth[pixel] = float2(length(fwidth(sd.posW)), length(fwidth(bsdfProperties.guideNormal)));
+        }
+#else
+#endif
+
     }
 
     void beginTime(inout GpuTimer timer)
