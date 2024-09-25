@@ -9,7 +9,7 @@ def render_graph_PathTracer():
         'useAlphaTest': True,
         'subPixelRandom' : "UnitQuad",
         'useDOF' : False,
-        'computeDerivativeMaually' : True,
+        'computeDerivativeMaually' : False,
     }
     gPathTracerParams = {
         'samplesPerPixel': 1,
