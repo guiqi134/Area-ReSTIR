@@ -62,6 +62,7 @@ struct SpatialResampling
     bool rejectNeighborPixelForHitType;
     uint resampleEmissionMode;
     uint restirPassIdx;
+    uint spatialPassIdx;
 
     uint getPixelIndex(uint2 pixel) { return pixel.y * frameDim.x + pixel.x; }
 
@@ -80,7 +81,7 @@ struct SpatialResampling
 
         // Compute pixel index in reservoir buffer
         uint pixelIdxInReservoirBuffer = getPixelIndex(frameDim, pixel, restirPassIdx);
-        uint sampleNum = frameIndex + 8 * restirPassIdx;
+        uint sampleNum = (32 * frameIndex + spatialPassIdx) + 8 * restirPassIdx;
         TinyUniformSampleGenerator sg = TinyUniformSampleGenerator(pixel, sampleNum);
 
         // Setup evaluation context for current/resampled reservoir

@@ -559,7 +559,7 @@ namespace Falcor
                     resources.pTemporalMISPrimaryHits = mpDevice->createStructuredBuffer(reflectVar["temporalMISPrimaryHits"], 8u * elementCount, ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess, MemoryType::DeviceLocal, nullptr, false);
                 }
             }
-            else 
+            else
             {
                 // Release all buffers
                 if (resources.pTemporalMISPDFs) resources.pTemporalMISPDFs = nullptr;
@@ -1096,6 +1096,7 @@ namespace Falcor
             var["prevReservoirs"] = resources.pPrevReservoirs;
             var["resEvalContext"] = resources.pResEvalContext;
             var["prevResEvalContext"] = resources.pPrevResEvalContext;
+            var["spatialPassIdx"] = iteration;
 
             for (uint i = 0; i < mOptions.numReSTIRPasses; i++)
             {

@@ -26,6 +26,7 @@ target_sources(GBuffer PRIVATE
     VBuffer/VBufferRT.rt.slang
     VBuffer/VBufferRT.slang
     VBuffer/ComputeDerivatives.cs.slang
+    VBuffer/LoadShadingData.slang
 )
 
 target_copy_shaders(GBuffer RenderPasses/GBuffer)
